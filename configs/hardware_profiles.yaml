@@ -1,0 +1,149 @@
+# Hybrid Hardware Profiles for Google Colab (TPU v5e-1 & CUDA A100/L4)
+# Auto-selected at runtime by src/common/hardware.py
+
+base_model:
+  model_id: "Qwen/Qwen2.5-Coder-14B-Instruct"
+  trust_remote_code: true
+  max_seq_len: 4096
+
+profiles:
+  tpu_v5e_1:
+    model_id: "Qwen/Qwen2.5-Coder-7B-Instruct"
+    backend: "xla"
+    device_name: "TPU v5e-1"
+    vram_gb: 16
+    precision: "bf16"
+    use_4bit_qlora: false
+    static_sequence_packing: true
+    seq_len: 4096
+    per_device_train_batch_size: 1
+    gradient_accumulation_steps: 16
+    learning_rate: 1.5e-4
+    lr_scheduler_type: "cosine"
+    warmup_ratio: 0.05
+    num_train_epochs: 2
+    gradient_checkpointing: true
+    optim: "adafactor"
+    dataloader_drop_last: true
+    xla_fsdp_enabled: false
+    lora:
+      r: 32
+      lora_alpha: 64
+      lora_dropout: 0.05
+      bias: "none"
+      task_type: "CAUSAL_LM"
+      target_modules:
+        - "q_proj"
+        - "k_proj"
+        - "v_proj"
+        - "o_proj"
+        - "gate_proj"
+        - "up_proj"
+        - "down_proj"
+
+  cuda_a100:
+    model_id: "Qwen/Qwen2.5-Coder-14B-Instruct"
+    backend: "cuda"
+    device_name: "NVIDIA A100"
+    min_vram_gb: 40
+    precision: "bf16"
+    use_4bit_qlora: false
+    static_sequence_packing: true
+    seq_len: 4096
+    per_device_train_batch_size: 2
+    gradient_accumulation_steps: 8
+    learning_rate: 1.5e-4
+    lr_scheduler_type: "cosine"
+    warmup_ratio: 0.05
+    num_train_epochs: 2
+    gradient_checkpointing: true
+    optim: "paged_adamw_8bit"
+    flash_attention_2: true
+    dataloader_drop_last: false
+    lora:
+      r: 32
+      lora_alpha: 64
+      lora_dropout: 0.05
+      bias: "none"
+      task_type: "CAUSAL_LM"
+      target_modules:
+        - "q_proj"
+        - "k_proj"
+        - "v_proj"
+        - "o_proj"
+        - "gate_proj"
+        - "up_proj"
+        - "down_proj"
+
+  cuda_l4:
+    model_id: "Qwen/Qwen2.5-Coder-14B-Instruct"
+    backend: "cuda"
+    device_name: "NVIDIA L4"
+    min_vram_gb: 20
+    precision: "bf16"
+    use_4bit_qlora: true
+    bnb_4bit_quant_type: "nf4"
+    bnb_4bit_use_double_quant: true
+    static_sequence_packing: true
+    seq_len: 4096
+    per_device_train_batch_size: 1
+    gradient_accumulation_steps: 16
+    learning_rate: 2.0e-4
+    lr_scheduler_type: "cosine"
+    warmup_ratio: 0.05
+    num_train_epochs: 2
+    gradient_checkpointing: true
+    optim: "paged_adamw_8bit"
+    flash_attention_2: false
+    dataloader_drop_last: false
+    lora:
+      r: 16
+      lora_alpha: 32
+      lora_dropout: 0.05
+      bias: "none"
+      task_type: "CAUSAL_LM"
+      target_modules:
+        - "q_proj"
+        - "k_proj"
+        - "v_proj"
+        - "o_proj"
+        - "gate_proj"
+        - "up_proj"
+        - "down_proj"
+
+  cpu_fallback:
+    backend: "cpu"
+    device_name: "CPU Fallback"
+    precision: "fp32"
+    use_4bit_qlora: false
+    static_sequence_packing: false
+    seq_len: 1024
+    per_device_train_batch_size: 1
+    gradient_accumulation_steps: 4
+    learning_rate: 1.0e-4
+    lr_scheduler_type: "linear"
+    warmup_ratio: 0.05
+    num_train_epochs: 1
+    gradient_checkpointing: false
+    optim: "adamw_torch"
+    dataloader_drop_last: false
+    lora:
+      r: 8
+      lora_alpha: 16
+      lora_dropout: 0.05
+      bias: "none"
+      task_type: "CAUSAL_LM"
+      target_modules:
+        - "q_proj"
+        - "v_proj"
+
+experts:
+  adapter_auth_bola:
+    description: "Authentication, Session/JWT, BOLA/IDOR, BFLA and Access Control Specialist"
+    output_subdir: "adapter_auth_bola"
+  adapter_injection_validation:
+    description: "Input Validation, SQLi, XSS, SSRF, Path Traversal, Template/Command Injection Specialist"
+    output_subdir: "adapter_injection_validation"
+  adapter_logic_verifier:
+    description: "Business Logic, Race Condition, False-Positive Elimination & Adjudication Verifier"
+    output_subdir: "adapter_logic_verifier"

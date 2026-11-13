@@ -1,0 +1,17 @@
+torch>=2.3.0
+transformers>=4.44.0
+peft>=0.12.0
+trl>=0.9.6
+accelerate>=0.33.0
+datasets>=2.20.0
+huggingface_hub>=0.24.0
+pyyaml>=6.0.1
+pydantic>=2.7.0
+httpx>=0.27.0
+aiohttp>=3.9.5
+datasketch>=1.6.5
+numpy>=1.26.0
+tqdm>=4.66.0
+sentencepiece>=0.2.0
+safetensors>=0.4.3
+bitsandbytes>=0.43.1; platform_system != "Windows"
