@@ -104,6 +104,13 @@ def pack_token_streams(
     if skipped_oversized:
         logger.warning("Skipped %d samples exceeding seq_len=%d to avoid mid-JSON truncation", skipped_oversized, seq_len)
 
+    if not stream_ids and encoded_samples:
+        # Fallback: keep shortest sample truncated to seq_len so Dataset is never empty.
+        shortest = min(encoded_samples, key=lambda s: len(s["input_ids"]))
+        stream_ids.extend(shortest["input_ids"][:seq_len])
+        stream_labels.extend(shortest["labels"][:seq_len])
+        stream_pos_ids.extend(range(min(len(shortest["input_ids"]), seq_len)))
+
     packed_input_ids: List[List[int]] = []
     packed_attention_mask: List[List[int]] = []
     packed_labels: List[List[int]] = []

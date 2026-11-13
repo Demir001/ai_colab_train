@@ -130,6 +130,10 @@ class MultiAdapterAuditor:
             logger.info("Loaded LoRA adapter: %s", adapter_name)
 
         self.model = peft_model if peft_model is not None else base_model
+        if self.hw.backend == "xla":
+            import torch_xla.core.xla_model as xm  # type: ignore
+
+            self.model = self.model.to(xm.xla_device())
         self.model.eval()
 
     def _generate_candidates(

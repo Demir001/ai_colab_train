@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import argparse
 import logging
+import os
 from pathlib import Path
 from typing import Any, Dict, Optional
 
@@ -89,6 +90,8 @@ def train_expert(
 ) -> Path:
     """Train a specialist LoRA adapter on the packed dataset for `expert_name`."""
     hw = detect_hardware_profile(config_path=config_path, force_profile=force_profile)
+    if hw.backend == "xla":
+        os.environ.setdefault("XLA_USE_BF16", "1")
     if expert_name not in hw.experts:
         raise ValueError(f"Unknown expert {expert_name!r}. Valid: {list(hw.experts.keys())}")
 
@@ -114,7 +117,7 @@ def train_expert(
         warmup_ratio=float(cfg.get("warmup_ratio", 0.05)),
         num_train_epochs=float(cfg.get("num_train_epochs", 2)),
         max_steps=max_steps,
-        bf16=(cfg.get("precision", "bf16") == "bf16" and hw.backend in {"cuda", "xla"}),
+        bf16=(cfg.get("precision", "bf16") == "bf16" and hw.backend == "cuda"),
         optim=str(cfg.get("optim", "adamw_torch")),
         gradient_checkpointing=bool(cfg.get("gradient_checkpointing", True)),
         gradient_checkpointing_kwargs={"use_reentrant": False} if cfg.get("gradient_checkpointing", True) else None,

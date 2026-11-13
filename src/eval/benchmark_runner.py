@@ -237,11 +237,16 @@ def run_benchmark(
     config_path: str | Path = "configs/hardware_profiles.yaml",
     report_out: str | Path = "/content/outputs/benchmark_report.json",
     dry_run: bool = False,
+    force_profile: Optional[str] = None,
 ) -> Dict[str, Any]:
     """Execute static benchmark suite and compute Accuracy, CWE Accuracy, FPR, Schema Compliance, and Token Efficiency."""
     auditor: Optional[MultiAdapterAuditor] = None
     if not dry_run:
-        auditor = MultiAdapterAuditor(adapters_dir=adapters_dir or "/content/outputs/adapters", config_path=config_path)
+        auditor = MultiAdapterAuditor(
+            adapters_dir=adapters_dir or "/content/outputs/adapters",
+            config_path=config_path,
+            force_profile=force_profile,
+        )
 
     case_results: List[Dict[str, Any]] = []
     tp = fp = tn = fn = 0
@@ -337,6 +342,7 @@ def main() -> None:
     parser.add_argument("--config", default="configs/hardware_profiles.yaml", help="Hardware profiles YAML")
     parser.add_argument("--report-out", default="/content/outputs/benchmark_report.json", help="Output JSON report")
     parser.add_argument("--dry-run", action="store_true", help="Run deterministic pipeline validation without model weights")
+    parser.add_argument("--force-profile", default=None, help="Optional hardware profile override")
     args = parser.parse_args()
 
     run_benchmark(
@@ -345,6 +351,7 @@ def main() -> None:
         config_path=args.config,
         report_out=args.report_out,
         dry_run=args.dry_run,
+        force_profile=args.force_profile,
     )
 
 

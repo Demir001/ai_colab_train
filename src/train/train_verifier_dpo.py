@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import argparse
 import logging
+import os
 from pathlib import Path
 from typing import Any, Dict, List, Optional
 
@@ -120,6 +121,8 @@ def train_verifier_dpo(
         raise RuntimeError("trl is required for DPO training. Install via `pip install trl>=0.9.6`.") from exc
 
     hw = detect_hardware_profile(config_path=config_path, force_profile=force_profile)
+    if hw.backend == "xla":
+        os.environ.setdefault("XLA_USE_BF16", "1")
     cfg = hw.config
     model_id = hw.resolved_model_id
     torch_dtype = torch.bfloat16 if cfg.get("precision", "bf16") == "bf16" else torch.float32
@@ -179,7 +182,7 @@ def train_verifier_dpo(
         num_train_epochs=1,
         max_steps=max_steps,
         beta=beta,
-        bf16=(cfg.get("precision", "bf16") == "bf16" and hw.backend in {"cuda", "xla"}),
+        bf16=(cfg.get("precision", "bf16") == "bf16" and hw.backend == "cuda"),
         optim=str(cfg.get("optim", "adamw_torch")),
         gradient_checkpointing=bool(cfg.get("gradient_checkpointing", True)),
         gradient_checkpointing_kwargs={"use_reentrant": False} if cfg.get("gradient_checkpointing", True) else None,

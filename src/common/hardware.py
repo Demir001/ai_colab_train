@@ -42,12 +42,14 @@ def load_hardware_yaml(config_path: str | Path = "configs/hardware_profiles.yaml
 
 
 def _detect_xla_available() -> bool:
-    """Check if PyTorch-XLA TPU runtime is active."""
+    """Check if PyTorch-XLA TPU runtime is active (supports both 'xla' and PrivateUse1 'tpu' devices)."""
     try:
+        import torch_xla  # type: ignore
         import torch_xla.core.xla_model as xm  # type: ignore
 
-        device = xm.xla_device()
-        return "xla" in str(device).lower()
+        device = xm.xla_device() if hasattr(xm, "xla_device") else torch_xla.device()
+        dev_str = str(device).lower()
+        return ("xla" in dev_str) or ("tpu" in dev_str)
     except Exception:
         return False
 
